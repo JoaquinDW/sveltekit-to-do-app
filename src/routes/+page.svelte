@@ -1,48 +1,47 @@
 <script lang="ts">
-	const CATEGORIES = [' All', 'Completed', 'In Progress'];
-	let selectedCategory = $state('All');
+	import { getTasksState, TasksState, type TodoItem } from '$lib/state.svelte';
+
+	const CATEGORIES = ['All', 'Completed', 'In Progress'];
+
 	let user = 'John Doe';
-	let tasks = $state([
-		{
-			id: 1,
-			title: 'Create a Project with SvelteKit',
-			status: 'In Progress'
-		},
-		{
-			id: 2,
-			title: 'Learn about Mathematics',
-			status: 'In Progress'
-		},
-		{
-			id: 3,
-			title: 'Learn about Physics',
-			status: 'In Progress'
+	// let tasks = $state([
+
+	// 	{
+	// 		id: 1,
+	// 		title: 'Create a Project with SvelteKit',
+	// 		status: 'In Progress'
+	// 	},
+	// 	{
+	// 		id: 2,
+	// 		title: 'Learn about Mathematics',
+	// 		status: 'In Progress'
+	// 	},
+	// 	{
+	// 		id: 3,
+	// 		title: 'Learn about Physics',
+	// 		status: 'In Progress'
+	// 	}
+	// ]);
+
+	let tasks = getTasksState();
+	let taskCount = $derived(tasks.tasks.length);
+	let completedTasks = $derived(tasks.tasks.filter((task) => task.completed).length);
+	let taskTitle = $state('');
+
+	$inspect(tasks.filteredTasks);
+
+	function handleCategoryClick(category: 'All' | 'Completed' | 'In Progress') {
+		tasks.updateCategory = category;
+	}
+
+	// function handleCompleteTask(taskId: number) {
+	// 	tasks.toggleCompleted(taskId);
+	// }
+
+	function addTask(taskTitle: string) {
+		if (taskTitle) {
+			tasks.add(taskTitle);
 		}
-	]);
-	let taskCount = $derived(tasks.length);
-	let completedTasks = $derived(tasks.filter((task) => task.status === 'Completed').length);
-	let taskTitle = '';
-
-	function handleCategoryClick(category: string) {
-		selectedCategory = category;
-	}
-
-	function handleCompleteTask(taskId: number) {
-		tasks = tasks.map((task) => {
-			if (task.id === taskId) {
-				task.status = task.status === 'Completed' ? 'In Progress' : 'Completed';
-			}
-			return task;
-		});
-	}
-
-	function addTask(title: string) {
-		const newTask = {
-			id: tasks.length + 1,
-			title,
-			status: 'In Progress'
-		};
-		tasks = [...tasks, newTask];
 	}
 </script>
 
@@ -53,9 +52,9 @@
 			{#each CATEGORIES as category}
 				<li>
 					<button
-						onclick={() => handleCategoryClick(category)}
+						onclick={() => handleCategoryClick(category as 'All' | 'Completed' | 'In Progress')}
 						class="w-full rounded-lg px-4 py-2 text-left font-medium"
-						class:bg-primary={category === selectedCategory}
+						class:bg-primary={category === tasks.selectedCategory}
 					>
 						{category}
 					</button>
@@ -83,22 +82,22 @@
 			</p>
 		</div>
 		<ul class="mt-10 flex h-[90vh] flex-1 flex-col justify-start gap-4">
-			{#each tasks as task, key (task.id)}
+			{#each tasks.filteredTasks as task, key (task.id)}
 				<li class="flex items-center justify-between rounded-lg bg-white p-4 shadow-md">
 					<div class="flex items-center justify-between gap-2">
 						<input
 							type="checkbox"
 							class="h-6 w-6 rounded-lg border-2 border-gray-400"
-							class:checked={task.status === 'Completed'}
-							onchange={() => handleCompleteTask(task.id)}
+							class:checked={task.completed}
+							bind:checked={task.completed}
 						/>
-						<p class="mb-0.5 text-lg font-semibold" class:completed={task.status === 'Completed'}>
-							{task.title}
+						<p class="mb-0.5 text-lg font-semibold" class:completed={task.completed === true}>
+							{task.text}
 						</p>
 					</div>
 					<div>
 						<button class="rounded-lg bg-blue-600 px-4 py-2 text-white">
-							{task.status}
+							{task.completed ? 'Completed' : 'In Progress'}
 						</button>
 					</div>
 				</li>
@@ -111,10 +110,12 @@
 			<input
 				class="relative w-full rounded-2xl bg-gray-900 px-8 py-6 text-lg text-white"
 				placeholder="Create a new task"
+				bind:value={taskTitle}
 			/>
 			<!-- button to add task -->
 			<button
 				class="absolute bottom-2 right-2 top-2 w-1/6 rounded-2xl bg-blue-600 py-3 font-semibold text-white"
+				onclick={() => addTask(taskTitle)}
 			>
 				Add Task
 			</button>
