@@ -1,34 +1,11 @@
 <script lang="ts">
-	import { getTasksState, TasksState, type TodoItem } from '$lib/state.svelte';
+	import { getTasksState } from '$lib/state.svelte';
 
 	const CATEGORIES = ['All', 'Completed', 'In Progress'];
 
 	let user = 'John Doe';
-	// let tasks = $state([
-
-	// 	{
-	// 		id: 1,
-	// 		title: 'Create a Project with SvelteKit',
-	// 		status: 'In Progress'
-	// 	},
-	// 	{
-	// 		id: 2,
-	// 		title: 'Learn about Mathematics',
-	// 		status: 'In Progress'
-	// 	},
-	// 	{
-	// 		id: 3,
-	// 		title: 'Learn about Physics',
-	// 		status: 'In Progress'
-	// 	}
-	// ]);
-
 	let tasks = getTasksState();
-	let taskCount = $derived(tasks.tasks.length);
-	let completedTasks = $derived(tasks.tasks.filter((task) => task.completed).length);
 	let taskTitle = $state('');
-
-	$inspect(tasks.filteredTasks);
 
 	function handleCategoryClick(category: 'All' | 'Completed' | 'In Progress') {
 		tasks.updateCategory = category;
@@ -78,7 +55,7 @@
 				</p>
 			</div>
 			<p class=" text-lg">
-				{taskCount} tasks, {completedTasks} completed
+				{tasks.tasksCount} tasks, {tasks.completedTasks.length} completed
 			</p>
 		</div>
 		<ul class="mt-10 flex h-[90vh] flex-1 flex-col justify-start gap-4">
